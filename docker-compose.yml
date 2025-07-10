@@ -1,0 +1,45 @@
+version: '3.3'
+
+services:
+  tradingagents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tradingagents:latest
+    container_name: tradingagents-app
+    user: "${UID:-1000}:${GID:-1000}"  # Match host user permissions
+    environment:
+      # Required API Keys - set these in your .env file or export them
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - FINNHUB_API_KEY=${FINNHUB_API_KEY}
+      # Optional: Add other API keys if needed
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      # Mount current directory for development (optional)
+      - .:/app
+      # Mount a data directory for persistent storage (optional)
+      - tradingagents_data:/app/data
+    ports:
+      # Map port 8000 for potential web interfaces
+      - "8000:8000"
+    # Command can be overridden
+    # command: ["python", "main.py"]
+    # Interactive mode for CLI usage
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+  # Optional: Add Redis for caching (if needed by the application)
+  redis:
+    image: redis:7-alpine
+    container_name: tradingagents-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  tradingagents_data:
+  redis_data: 
